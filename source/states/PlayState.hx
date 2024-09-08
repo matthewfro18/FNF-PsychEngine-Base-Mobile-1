@@ -192,6 +192,10 @@ class PlayState extends MusicBeatState
 	public var luaVpadCam:FlxCamera;
 	public var cameraSpeed:Float = 1;
 
+	public var creditsPopup:CreditsPopUp;
+
+	public static var isGreetingsCutscene:Bool;
+
 	public var songScore:Int = 0;
 	public var songHits:Int = 0;
 	public var songMisses:Int = 0;
@@ -466,7 +470,7 @@ class PlayState extends MusicBeatState
 		if(ClientPrefs.data.downScroll) timeTxt.y = FlxG.height - 44;
 		if(ClientPrefs.data.timeBarType == 'Song Name') timeTxt.text = SONG.song;
 
-		timeBar = new Bar(0, timeTxt.y + (timeTxt.height / 4), 'timeBar', function() return songPercent, 0, 1);
+		timeBar = new Bar(0, timeTxt.y + (timeTxt.height / 4), 'ui/timeBar', function() return songPercent, 0, 1);
 		timeBar.scrollFactor.set();
 		timeBar.screenCenter(X);
 		timeBar.alpha = 0;
@@ -690,7 +694,9 @@ class PlayState extends MusicBeatState
 	#end
 
 	public function reloadHealthBarColors() {
-		healthBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]),
+		healthBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]), FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]));
+		timeBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]));
+
 			FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2]));
 	}
 
@@ -1012,7 +1018,23 @@ class PlayState extends MusicBeatState
 						FlxG.sound.play(Paths.sound('introGo' + introSoundsSuffix), 0.6);
 						tick = GO;
 					case 4:
+					if (!isGreetingsCutscene)
+					{
+						creditsPopup = new CreditsPopUp(FlxG.width, 200);
+						creditsPopup.camera = camHUD;
+						creditsPopup.scrollFactor.set();
+						creditsPopup.x = creditsPopup.width * -1;
+						add(creditsPopup);
+	
+						FlxTween.tween(creditsPopup, {x: 0}, 0.5, {ease: FlxEase.backOut, onComplete: function(tweeen:FlxTween)
+						{
+							FlxTween.tween(creditsPopup, {x: creditsPopup.width * -1} , 1, {ease: FlxEase.backIn, onComplete: function(tween:FlxTween)
+							{
+								creditsPopup.destroy();
+							}, startDelay: 3});
+						}});
 						tick = START;
+					}
 				}
 
 				if(!skipArrowStartTween)
